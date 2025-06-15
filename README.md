@@ -1,4 +1,3 @@
-````markdown
 # 🧠 AI-Powered Arabic Content Analysis Agent
 
 This project is an AI-powered assistant built using the Retrieval-Augmented Generation (RAG) framework to analyze **Arabic content** from PDFs and images. The assistant can answer user queries in **Arabic** via **text** and optionally support **voice** interfaces.

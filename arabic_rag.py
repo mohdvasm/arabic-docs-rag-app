@@ -43,7 +43,7 @@ files = [
     # "/home/mohdvasm/Downloads/Demo123.pdf"
 ]
 
-
+# One function to load pdf and image both based on file ext
 def load_docs(files: list):
     try:
         docs = []
@@ -67,6 +67,8 @@ def load_docs(files: list):
 
 
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+
+# For testing agent in terminal
 if files:
     docs = load_docs(files)
     
@@ -83,13 +85,13 @@ class State(TypedDict):
     answer: str
 
 
-# Define application steps
+# Relevant doc retriever
 def retrieve(state: State):
     retrieved_docs = vector_store.similarity_search(state["question"])
     print(retrieved_docs)
     return {"context": retrieved_docs}
 
-
+# Response generator
 def generate(state: State):
     docs_content = "\n\n".join(doc.page_content for doc in state["context"])
     messages = custom_rag_prompt.invoke({"question": state["question"], "context": docs_content})
@@ -102,27 +104,8 @@ graph_builder = StateGraph(State).add_sequence([retrieve, generate])
 graph_builder.add_edge(START, "retrieve")
 graph = graph_builder.compile()
 
-def stream_graph_updates(user_input: str):
-    for event in graph.stream({"messages": [{"role": "user", "content": user_input}]}):
-        for value in event.values():
-            print("Assistant:", value["messages"][-1].content)
 
-
-def create_rag_graph(files: list):
-    docs = load_docs(files)
-    all_splits = text_splitter.split_documents(docs)
-    vector_store = InMemoryVectorStore(embeddings)
-
-    # Index chunks
-    _ = vector_store.add_documents(documents=all_splits)
-
-    # Compile application and test
-    graph_builder = StateGraph(State).add_sequence([retrieve, generate])
-    graph_builder.add_edge(START, "retrieve")
-    graph = graph_builder.compile()
-    return graph
-
-
+# Custom function to update vector store based on chat files or independent files from knowledge base tab
 def update_vectorstore(files: list):
     try:
         print(f"Updating vector store")
